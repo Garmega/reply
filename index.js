@@ -234,7 +234,7 @@ var get = exports.get = function(options, callback) {
   
   /**
    * Checks to make sure the passed in options in proper formats.
-   * @param {[string]} conds
+   * @param {Array<string>} conds
    * @returns {bool}
    */
   var dependencies_met = function(conds) {
