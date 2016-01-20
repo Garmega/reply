@@ -6,6 +6,12 @@ var get_interface = function(stdin, stdout) {
   return rl;
 }
 
+/*
+ * This is a basic prompt for yes/no confirmation.
+ * If nothing is inputted 'yes' is defaulted.
+ * The user can designate their own message prompt and call back function.
+ */
+
 var confirm = exports.confirm = function(message, callback) {
 
   var question = {
@@ -23,6 +29,12 @@ var confirm = exports.confirm = function(message, callback) {
 
 };
 
+/*
+ * All Encompasing method to determine a reply from a user.
+ * A list of questions can be passed in with default answers.
+ * 
+ */
+
 var get = exports.get = function(options, callback) {
 
   if (!callback) return; // no point in continuing
@@ -30,30 +42,38 @@ var get = exports.get = function(options, callback) {
   if (typeof options != 'object')
     return callback(new Error("Please pass a valid options object."))
 
+  //Variable declarations.
   var answers = {},
       stdin = process.stdin,
       stdout = process.stdout,
-      fields = Object.keys(options);
-
+      fields = Object.keys(options); 
+      
+  //Function called when all questions have been done. Callback is called here.
   var done = function() {
     close_prompt();
     callback(null, answers);
   }
-
+  
+  //Disengages the appropriate objects.
   var close_prompt = function() {
     stdin.pause();
     if (!rl) return;
     rl.close();
     rl = null;
   }
-
+  
+  //Function to get the default value for a key
   var get_default = function(key, partial_answers) {
+    //If the key does have an object associated with it.
     if (typeof options[key] == 'object')
+      //If the default value is a function then run the function with the parameter partial answer else return the properties default value.
       return typeof options[key].default == 'function' ? options[key].default(partial_answers) : options[key].default;
     else
+      //Return the value sitting there anyway ???
       return options[key];
   }
-
+  
+  //Determines if the user replied with a yes or no ???
   var guess_type = function(reply) {
 
     if (reply.trim() == '')
@@ -68,8 +88,9 @@ var get = exports.get = function(options, callback) {
     return reply;
   }
 
+  //Validates the answer of the user.
   var validate = function(key, answer) {
-
+      
     if (typeof answer == 'undefined')
       return options[key].allow_empty || typeof get_default(key) != 'undefined';
     else if(regex = options[key].regex)
@@ -85,24 +106,32 @@ var get = exports.get = function(options, callback) {
 
   }
 
+  //Generates an error message for the given key
   var show_error = function(key) {
+      
+    //Attempts to print out an error message if one is defined. Otherwise a default one will be provided.
     var str = options[key].error ? options[key].error : 'Invalid value.';
-
+    
+    //If the key has options defined than it will concatenate those options.
     if (options[key].options)
         str += ' (options are ' + options[key].options.join(', ') + ')';
-
+    
     stdout.write("\033[31m" + str + "\033[0m" + "\n");
   }
-
+  
+  //Generates a message for the given key
   var show_message = function(key) {
     var msg = '';
-
+    
+    //If the key has a message defined.
     if (text = options[key].message)
       msg += text.trim() + ' ';
-
+      
+    //If the key has options defined.
     if (options[key].options)
       msg += '(options are ' + options[key].options.join(', ') + ')';
-
+      
+    //If some message has been generated, print. otherwise do nothing.
     if (msg != '') stdout.write("\033[1m" + msg + "\033[0m\n");
   }
 
